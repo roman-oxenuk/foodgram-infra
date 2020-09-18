@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:12-alpine
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+
+  web:
+    image: romanoxenuk/foodgram:latest
+    restart: always
+    command: gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./static:/code/static
+      - ./media:/code/media
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+
+  nginx:
+    image: romanoxenuk/foodgram-nginx
+    depends_on:
+      - web
+    ports:
+      - 80:80
+    volumes:
+      - ./static:/home/www/static:ro
+      - ./media:/home/www/media:ro
